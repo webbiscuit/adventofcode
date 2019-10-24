@@ -1,3 +1,9 @@
+module Day02
+(
+  calculateTotalWrappingPaperNeeded,
+  calculateTotalRibbonNeeded
+) where
+
 calculateTotalWrappingPaperNeeded :: String -> Int
 calculateTotalWrappingPaperNeeded input = sum $ map calculateWrappingPaperNeeded (lines input)
 
@@ -51,14 +57,15 @@ ribbonWrap l w h = foldl (\acc a -> acc + (a * 2)) 0 $ toSmallestTwo l w h
 bow :: Int -> Int -> Int -> Int
 bow l w h = l * w * h
 
+showTotalWrappingPaper :: Int -> String
+showTotalWrappingPaper p = "Square feet of wrapping paper " ++ (show p)
+
+showTotalRibbonNeeded :: Int -> String
+showTotalRibbonNeeded r = "Square feet of ribbon " ++ (show r)
+
 main = do
   input <- getContents
-  let wrappingPaperNeeded = show $ calculateTotalWrappingPaperNeeded input
-  let wrappingPaperNeededOutput =  "Square feet of wrapping paper " ++ wrappingPaperNeeded
-  putStrLn wrappingPaperNeededOutput
-
-  let ribbonNeeded = show $ calculateTotalRibbonNeeded input
-  let ribbonNeededOutput =  "Square feet of ribbon " ++ ribbonNeeded
-  putStrLn ribbonNeededOutput
+  putStrLn $ showTotalWrappingPaper $ calculateTotalWrappingPaperNeeded input
+  putStrLn $ showTotalRibbonNeeded $ calculateTotalRibbonNeeded input
 
 

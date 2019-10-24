@@ -50,10 +50,10 @@ bow :: (Int, Int, Int) -> Int
 bow (l, w, h) = l * w * h
 
 showTotalWrappingPaper :: Int -> String
-showTotalWrappingPaper p = "Square feet of wrapping paper " ++ (show p)
+showTotalWrappingPaper p = "Square feet of wrapping paper " ++ show p
 
 showTotalRibbonNeeded :: Int -> String
-showTotalRibbonNeeded r = "Square feet of ribbon " ++ (show r)
+showTotalRibbonNeeded r = "Square feet of ribbon " ++ show r
 
 main = do
   input <- getContents

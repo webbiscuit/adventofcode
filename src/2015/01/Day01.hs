@@ -22,10 +22,10 @@ firstBasementPosition :: String -> Maybe Int
 firstBasementPosition fs = elemIndex (-1) $ scanl floorAccumulator 0 fs
 
 showFinalFloor :: Int -> String
-showFinalFloor f = "Final floor " ++ (show f)
+showFinalFloor f = "Final floor " ++ show f
 
 showFirstBasementPosition :: Maybe Int -> String
-showFirstBasementPosition (Just p) = "Basement first at instruction " ++ (show p)
+showFirstBasementPosition (Just p) = "Basement first at instruction " ++ show p
 showFirstBasementPosition Nothing = "Never went to the basement"
 
 main = do

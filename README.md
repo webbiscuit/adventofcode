@@ -10,7 +10,7 @@
 
     cd <to correct directory in src>
     stack runghc 1.hs < input.txt
-    echo "()" | stack runghc 1.hs
+    echo -n "()" | stack runghc 1.hs
 
 ## Running a test
 

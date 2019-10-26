@@ -6,33 +6,35 @@ module Day03
 
 import Data.List
 
-data Position = Position {posx ::Int, posy :: Int} deriving (Show, Eq)
-data Step = Step {stepx :: Int, stepy :: Int} deriving (Show)
+type Position = (Int, Int)
+type Step = (Int, Int)
 
 makeStep :: Char -> Step
-makeStep '<' = Step (-1) 0
-makeStep '>' = Step 1 0
-makeStep '^' = Step 0 1
-makeStep 'v' = Step 0 (-1)
-makeStep _ = error "Woah! Where are we going?"
+makeStep '<' = (-1, 0)
+makeStep '>' = (1, 0)
+makeStep '^' = (0, 1)
+makeStep 'v' = (0, -1)
+makeStep _ = (0, 0)
 
 countHousesWithPresents :: String -> Int
-countHousesWithPresents input = length $ nub $ doWalk (Position 0 0) input
+countHousesWithPresents input = length $ nub $ doWalk (0, 0) input
 
 countHousesWithPresentsUsingRobot :: String -> Int
-countHousesWithPresentsUsingRobot input = length $ nub $ doWalk (Position 0 0) (toOddIndexes input) ++ doWalk (Position 0 0) (toEvenIndexes input)
+countHousesWithPresentsUsingRobot input = length $ nub $ doWalk (0, 0) (odds input) ++ doWalk (0, 0) (evens input)
 
 makeMove :: Position -> Step -> Position
-makeMove startPos step = Position (posx startPos + stepx step) (posy startPos + stepy step)
+makeMove (x,y) (dx,dy) = (x + dx, y + dy)
 
-toOddIndexes :: String -> String
-toOddIndexes input = map snd . filter (odd . fst) $ zip [1..] input
-
-toEvenIndexes :: String -> String
-toEvenIndexes input = map snd . filter (even . fst) $ zip [1..] input
-
-doWalk :: Position -> String -> [Position] 
+doWalk :: Position -> String -> [Position]
 doWalk startPos input = scanl makeMove startPos $ map makeStep input
+
+odds :: String -> String
+odds (x:y:xs) = [y] ++ (odds xs)
+odds _ = []
+
+evens :: String -> String
+evens (x:y:xs) = [x] ++ (evens xs)
+evens _ = []
 
 showHousesWithPresents :: Int -> String
 showHousesWithPresents h = "Houses that got presents: " ++ show h

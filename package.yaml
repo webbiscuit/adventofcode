@@ -24,6 +24,11 @@ dependencies:
   - tasty
   - tasty-hspec
   - hspec
+  - cryptohash
+  - bytestring
+
+default-extensions:
+  - OverloadedStrings
 
 library:
   source-dirs: src

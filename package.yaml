@@ -26,6 +26,8 @@ dependencies:
   - hspec
   - cryptohash
   - bytestring
+  - regex-pcre-builtin
+  - array
 
 default-extensions:
   - OverloadedStrings

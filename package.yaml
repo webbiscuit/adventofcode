@@ -28,6 +28,8 @@ dependencies:
   - bytestring
   - regex-pcre-builtin
   - array
+  - megaparsec
+  - unordered-containers
 
 default-extensions:
   - OverloadedStrings

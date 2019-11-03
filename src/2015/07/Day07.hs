@@ -1,7 +1,7 @@
 module Day07
 (
-  execute,
-  read
+  parseStatements,
+  readVariable
 ) where
 
 import Data.Bits
@@ -13,82 +13,126 @@ import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 
 type Parser = Parsec Void String
-type Address = String
+type Identifier = String
 type Value = Word16
-type MachineState = Map.HashMap Address Value
+type MachineState = Map.HashMap Identifier Value
 
-data Op
-  = And
-  | Or
-  | Set Address Value
-  deriving (Eq, Show)
+data Statement
+  = Assign Identifier Value
+  deriving (Show)
 
-pValue :: Parser Value
-pValue = L.decimal
+sc :: Parser ()
+sc = L.space space1 empty empty
 
-pAddress :: Parser Address
-pAddress = some letterChar
+lexeme :: Parser a -> Parser a
+lexeme = L.lexeme sc
 
-arrow :: Parser String
-arrow = string " -> "
+symbol :: String -> Parser String
+symbol = L.symbol sc
 
-unaryOpP :: MachineState -> Parser MachineState
-unaryOpP state = do
-  val <- pValue
-  _ <- arrow
-  address <- pAddress
-  _ <- eof
-  return $ execute (Set address val) state
+identifier :: Parser Identifier
+identifier = lexeme $ many letterChar
 
--- binaryOpP = do
---   val1 <- many letterChar -- (:) <$> letterChar <*> many alphaNumChar
---   op <- binaryOpChoices
---   val2 <- many letterChar
+value :: Parser Value
+value = lexeme L.decimal
+
+statement :: Parser Statement
+statement = assignStatement
+
+assignStatement :: Parser Statement
+assignStatement = do
+  value <- value
+  symbol "->"
+  address <- identifier
+  return (Assign address value)
+
+-- parseStatement = 
+
+-- type MachineState = Map.HashMap Address Value
+
+-- data Op
+--   = And
+--   | Or
+--   | Set Address Value
+--   deriving (Eq, Show)
+
+-- pValue :: Parser Value
+-- pValue = L.decimal
+
+-- pAddress :: Parser Address
+-- pAddress = some letterChar
+
+-- arrow :: Parser String
+-- arrow = string " -> "
+
+-- unaryOpP :: MachineState -> Parser MachineState
+-- unaryOpP state = do
+--   val <- pValue
 --   _ <- arrow
---   dest <- many letterChar
+--   address <- pAddress
 --   _ <- eof
---   return $ binaryExecute op val1 val2 dest
+--   return $ execute (Set address val) state
 
--- binaryOpChoices :: Parser Op
--- binaryOpChoices = choice 
---   [
---     And <$ string " AND ",
---     Or <$ string " OR "
---   ]
+-- -- binaryOpP = do
+-- --   val1 <- many letterChar -- (:) <$> letterChar <*> many alphaNumChar
+-- --   op <- binaryOpChoices
+-- --   val2 <- many letterChar
+-- --   _ <- arrow
+-- --   dest <- many letterChar
+-- --   _ <- eof
+-- --   return $ binaryExecute op val1 val2 dest
 
--- binaryExecute And a b c = "This is and"
--- binaryExecute Or a b c = "This is or"
+-- -- binaryOpChoices :: Parser Op
+-- -- binaryOpChoices = choice 
+-- --   [
+-- --     And <$ string " AND ",
+-- --     Or <$ string " OR "
+-- --   ]
 
--- unaryExecute :: Op -> Expr -> Expr -> String
--- unaryExecute Set a b = "This is a set " ++ a
+-- -- binaryExecute And a b c = "This is and"
+-- -- binaryExecute Or a b c = "This is or"
+
+-- -- unaryExecute :: Op -> Expr -> Expr -> String
+-- -- unaryExecute Set a b = "This is a set " ++ a
 
 initialState :: MachineState
 initialState = Map.empty
 
-execute :: Op -> MachineState -> MachineState
-execute (Set address value) = Map.insert address value
+-- execute :: Op -> MachineState -> MachineState
+-- execute (Set address value) = Map.insert address value
 
-tryParsing :: MachineState -> Parser MachineState
-tryParsing = unaryOpP  -- <|> binaryOpP 
+-- tryParsing :: MachineState -> Parser MachineState
+-- tryParsing = unaryOpP  -- <|> binaryOpP 
 
--- parse :: 
---doParseWork :: MachineState -> String
-doParseWork st = parse (tryParsing st) ""
+-- -- parse :: 
+-- --doParseWork :: MachineState -> String
+-- doParseWork st = parse (tryParsing st) ""
 
 ex = ["1 -> a", "2 -> b"]
 
+finalState :: [Maybe Statement] -> MachineState
+finalState = foldl (flip handleStatement) initialState
 
-printResults input = case parse (tryParsing initialState) "" input of
-  Left bundle -> putStrLn (errorBundlePretty bundle)
-  Right xs -> print (xs)
+handleStatement' :: Statement -> MachineState -> MachineState
+handleStatement' (Assign identifier address) = Map.insert identifier address
 
-main = do
-  input <- getContents
-  --finalState <- parse (tryParsing initialState) "" input
+handleStatement :: Maybe Statement -> MachineState -> MachineState
+handleStatement (Just statement) = handleStatement' statement
+handleStatement _ = error "Error parsing the data"
+
+parseStatements :: [String] -> MachineState
+parseStatements = finalState . map (parseMaybe assignStatement)
+
+readVariable :: Identifier -> MachineState  -> Maybe Value
+readVariable = Map.lookup
+
+-- main = do
+--   input <- getContents
+--   --finalState <- parse (tryParsing initialState) "" input
   
 
-  putStrLn "ERM"
-  -- finalState
- -- putStrLn (finalState)
-  -- putStrLn $ showLightsOn $ countLightsOn input
-  -- putStrLn $ showBrightness $ measureBrightness input
+--   putStrLn "ERM"
+--   -- finalState
+--  -- putStrLn (finalState)
+--   -- putStrLn $ showLightsOn $ countLightsOn input
+--   -- putStrLn $ showBrightness $ measureBrightness input

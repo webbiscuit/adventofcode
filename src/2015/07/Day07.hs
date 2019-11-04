@@ -19,10 +19,14 @@ type Value = Word16
 type MachineState = Map.HashMap Identifier Value
 type Destination = Identifier
 type Source = Identifier
+type Amount = Int
 
 data Statement
   = Assign Destination Value
   | And Destination Source Source
+  | Or Destination Source Source
+  | LShift Destination Source Amount
+  | RShift Destination Source Amount
   deriving (Show)
 
 sc :: Parser ()
@@ -40,8 +44,16 @@ identifier = lexeme $ many letterChar
 value :: Parser Value
 value = lexeme L.decimal
 
+amount :: Parser Amount
+amount = lexeme L.decimal
+
 statement :: Parser Statement
-statement = try assignStatement <|> andStatement
+statement = 
+  try assignStatement <|> 
+  try andStatement <|> 
+  try orStatement <|>
+  try lShiftStatement <|>
+  try rShiftStatement 
 
 assignStatement :: Parser Statement
 assignStatement = do
@@ -58,6 +70,33 @@ andStatement = do
   symbol "->"
   address <- identifier
   return (And address value1 value2)
+
+orStatement :: Parser Statement
+orStatement = do
+  value1 <- identifier
+  symbol "OR"
+  value2 <- identifier
+  symbol "->"
+  address <- identifier
+  return (Or address value1 value2)
+
+lShiftStatement :: Parser Statement
+lShiftStatement = do
+  source <- identifier
+  symbol "LSHIFT"
+  amount <- amount
+  symbol "->"
+  dest <- identifier
+  return (LShift dest source amount)
+
+rShiftStatement :: Parser Statement
+rShiftStatement = do
+  source <- identifier
+  symbol "RSHIFT"
+  amount <- amount
+  symbol "->"
+  dest <- identifier
+  return (RShift dest source amount)
 
 -- parseStatement = 
 
@@ -121,8 +160,6 @@ initialState = Map.empty
 -- --doParseWork :: MachineState -> String
 -- doParseWork st = parse (tryParsing st) ""
 
-ex = ["1 -> a", "2 -> b"]
-
 finalState :: [Maybe Statement] -> MachineState
 finalState = foldl (flip handleStatement) initialState
 
@@ -131,6 +168,13 @@ handleStatement' (Assign identifier value) state = Map.insert identifier value s
 handleStatement' (And dest source1 source2) state = Map.insert dest (val1 .&. val2) state
   where val1 = fromJust $ Map.lookup source1 state
         val2 = fromJust $ Map.lookup source2 state
+handleStatement' (Or dest source1 source2) state = Map.insert dest (val1 .|. val2) state
+  where val1 = fromJust $ Map.lookup source1 state
+        val2 = fromJust $ Map.lookup source2 state
+handleStatement' (LShift dest source amount) state = Map.insert dest (shiftL val amount) state
+  where val = fromJust $ Map.lookup source state
+handleStatement' (RShift dest source amount) state = Map.insert dest (shiftR val amount) state
+  where val = fromJust $ Map.lookup source state
 
 handleStatement :: Maybe Statement -> MachineState -> MachineState
 handleStatement (Just statement) = handleStatement' statement

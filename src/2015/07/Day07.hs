@@ -7,6 +7,7 @@ module Day07
 import Data.Bits
 import Data.Word
 import Data.Void
+import Data.Maybe
 import qualified Data.HashMap.Strict as Map
 import Text.Megaparsec
 import Text.Megaparsec.Char
@@ -16,9 +17,12 @@ type Parser = Parsec Void String
 type Identifier = String
 type Value = Word16
 type MachineState = Map.HashMap Identifier Value
+type Destination = Identifier
+type Source = Identifier
 
 data Statement
-  = Assign Identifier Value
+  = Assign Destination Value
+  | And Destination Source Source
   deriving (Show)
 
 sc :: Parser ()
@@ -37,7 +41,7 @@ value :: Parser Value
 value = lexeme L.decimal
 
 statement :: Parser Statement
-statement = assignStatement
+statement = try assignStatement <|> andStatement
 
 assignStatement :: Parser Statement
 assignStatement = do
@@ -45,6 +49,15 @@ assignStatement = do
   symbol "->"
   address <- identifier
   return (Assign address value)
+
+andStatement :: Parser Statement
+andStatement = do
+  value1 <- identifier
+  symbol "AND"
+  value2 <- identifier
+  symbol "->"
+  address <- identifier
+  return (And address value1 value2)
 
 -- parseStatement = 
 
@@ -114,14 +127,17 @@ finalState :: [Maybe Statement] -> MachineState
 finalState = foldl (flip handleStatement) initialState
 
 handleStatement' :: Statement -> MachineState -> MachineState
-handleStatement' (Assign identifier address) = Map.insert identifier address
+handleStatement' (Assign identifier value) state = Map.insert identifier value state
+handleStatement' (And dest source1 source2) state = Map.insert dest (val1 .&. val2) state
+  where val1 = fromJust $ Map.lookup source1 state
+        val2 = fromJust $ Map.lookup source2 state
 
 handleStatement :: Maybe Statement -> MachineState -> MachineState
 handleStatement (Just statement) = handleStatement' statement
 handleStatement _ = error "Error parsing the data"
 
 parseStatements :: [String] -> MachineState
-parseStatements = finalState . map (parseMaybe assignStatement)
+parseStatements = finalState . map (parseMaybe statement)
 
 readVariable :: Identifier -> MachineState  -> Maybe Value
 readVariable = Map.lookup

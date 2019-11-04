@@ -24,9 +24,11 @@ type Amount = Int
 data Statement
   = Assign Destination Value
   | And Destination Source Source
+  | ValAnd Destination Value Source
   | Or Destination Source Source
   | LShift Destination Source Amount
   | RShift Destination Source Amount
+  | Not Destination Source
   deriving (Show)
 
 sc :: Parser ()
@@ -51,9 +53,11 @@ statement :: Parser Statement
 statement = 
   try assignStatement <|> 
   try andStatement <|> 
+  try valAndStatement <|>
   try orStatement <|>
   try lShiftStatement <|>
-  try rShiftStatement 
+  try rShiftStatement <|>
+  try notStatement
 
 assignStatement :: Parser Statement
 assignStatement = do
@@ -70,6 +74,15 @@ andStatement = do
   symbol "->"
   address <- identifier
   return (And address value1 value2)
+
+valAndStatement :: Parser Statement
+valAndStatement = do
+  value1 <- value
+  symbol "AND"
+  value2 <- identifier
+  symbol "->"
+  address <- identifier
+  return (ValAnd address value1 value2)
 
 orStatement :: Parser Statement
 orStatement = do
@@ -98,67 +111,16 @@ rShiftStatement = do
   dest <- identifier
   return (RShift dest source amount)
 
--- parseStatement = 
-
--- type MachineState = Map.HashMap Address Value
-
--- data Op
---   = And
---   | Or
---   | Set Address Value
---   deriving (Eq, Show)
-
--- pValue :: Parser Value
--- pValue = L.decimal
-
--- pAddress :: Parser Address
--- pAddress = some letterChar
-
--- arrow :: Parser String
--- arrow = string " -> "
-
--- unaryOpP :: MachineState -> Parser MachineState
--- unaryOpP state = do
---   val <- pValue
---   _ <- arrow
---   address <- pAddress
---   _ <- eof
---   return $ execute (Set address val) state
-
--- -- binaryOpP = do
--- --   val1 <- many letterChar -- (:) <$> letterChar <*> many alphaNumChar
--- --   op <- binaryOpChoices
--- --   val2 <- many letterChar
--- --   _ <- arrow
--- --   dest <- many letterChar
--- --   _ <- eof
--- --   return $ binaryExecute op val1 val2 dest
-
--- -- binaryOpChoices :: Parser Op
--- -- binaryOpChoices = choice 
--- --   [
--- --     And <$ string " AND ",
--- --     Or <$ string " OR "
--- --   ]
-
--- -- binaryExecute And a b c = "This is and"
--- -- binaryExecute Or a b c = "This is or"
-
--- -- unaryExecute :: Op -> Expr -> Expr -> String
--- -- unaryExecute Set a b = "This is a set " ++ a
+notStatement :: Parser Statement
+notStatement = do
+  symbol "NOT"
+  source <- identifier
+  symbol "->"
+  dest <- identifier
+  return (Not dest source)
 
 initialState :: MachineState
 initialState = Map.empty
-
--- execute :: Op -> MachineState -> MachineState
--- execute (Set address value) = Map.insert address value
-
--- tryParsing :: MachineState -> Parser MachineState
--- tryParsing = unaryOpP  -- <|> binaryOpP 
-
--- -- parse :: 
--- --doParseWork :: MachineState -> String
--- doParseWork st = parse (tryParsing st) ""
 
 finalState :: [Maybe Statement] -> MachineState
 finalState = foldl (flip handleStatement) initialState
@@ -174,6 +136,10 @@ handleStatement' (Or dest source1 source2) state = Map.insert dest (val1 .|. val
 handleStatement' (LShift dest source amount) state = Map.insert dest (shiftL val amount) state
   where val = fromJust $ Map.lookup source state
 handleStatement' (RShift dest source amount) state = Map.insert dest (shiftR val amount) state
+  where val = fromJust $ Map.lookup source state
+handleStatement' (ValAnd dest value source) state = Map.insert dest (value .&. val) state
+  where val = fromJust $ Map.lookup source state
+handleStatement' (Not dest source) state = Map.insert dest (complement val) state
   where val = fromJust $ Map.lookup source state
 
 handleStatement :: Maybe Statement -> MachineState -> MachineState

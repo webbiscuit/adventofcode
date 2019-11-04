@@ -21,8 +21,8 @@ main = hspec $
       it "x RSHIFT 2 -> d" $
         readVariable "d" (parseStatements ["123 -> x","x RSHIFT 2 -> d"]) `shouldBe` Just 30
 
-      -- it "NOT x -> d" $
-      --   readVariable "d" (parseStatements ["123 -> x","NOT x -> d"]) `shouldBe` Just -124
+      it "NOT x -> d" $
+        readVariable "d" (parseStatements ["123 -> x","NOT x -> d"]) `shouldBe` Just (-124)
 
-      -- it "1 AND x -> d" $
-      --   readVariable "d" (parseStatements ["123 -> x","1 AND x -> d"]) `shouldBe` Just 1
+      it "1 AND x -> d" $
+        readVariable "d" (parseStatements ["123 -> x","1 AND x -> d"]) `shouldBe` Just 1

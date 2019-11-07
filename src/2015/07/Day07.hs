@@ -36,7 +36,7 @@ getVal (WireIn w) = w
 getVal (SignalIn v) = show v
 
 addGates :: [(Wire, Gate)] -> SignalMap 
-addGates = Map.fromList --["a"] [a]  --map (addGate "a" a) --[a, b]
+addGates = Map.fromList
 
 parse :: [String] -> (Wire, Gate)
 parse [          x, "->", w] = (w, Assign (addInput x))

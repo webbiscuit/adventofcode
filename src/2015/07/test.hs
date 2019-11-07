@@ -7,22 +7,25 @@ main = hspec $
 
     context "Doing Logic" $ do
       it "Assigns with 123 -> x" $
-        readVariable "x" (parseStatements ["123 -> x"]) `shouldBe` Just 123
+        readSignal (createCircuit "123 -> x") "x" `shouldBe` 123
 
       it "ANDs x AND y -> d" $
-        readVariable "d" (parseStatements ["123 -> x","456 -> y","x AND y -> d"]) `shouldBe` Just 72
+        readSignal (createCircuit "123 -> x\n456 -> y\nx AND y -> d") "d" `shouldBe` 72
 
       it "ORs x OR y -> d" $
-        readVariable "d" (parseStatements ["123 -> x","456 -> y","x OR y -> d"]) `shouldBe` Just 507
+        readSignal (createCircuit "123 -> x\n456 -> y\nx OR y -> d") "d" `shouldBe` 507
 
       it "x LSHIFT 2 -> d" $
-        readVariable "d" (parseStatements ["123 -> x","x LSHIFT 2 -> d"]) `shouldBe` Just 492
+        readSignal (createCircuit "123 -> x\nx LSHIFT 2 -> d") "d"`shouldBe` 492
 
       it "x RSHIFT 2 -> d" $
-        readVariable "d" (parseStatements ["123 -> x","x RSHIFT 2 -> d"]) `shouldBe` Just 30
+        readSignal (createCircuit "123 -> x\nx RSHIFT 2 -> d") "d" `shouldBe` 30
 
       it "NOT x -> d" $
-        readVariable "d" (parseStatements ["123 -> x","NOT x -> d"]) `shouldBe` Just (-124)
+        readSignal (createCircuit "123 -> x\nNOT x -> d") "d" `shouldBe` 65412
 
       it "1 AND x -> d" $
-        readVariable "d" (parseStatements ["123 -> x","1 AND x -> d"]) `shouldBe` Just 1
+        readSignal (createCircuit "123 -> x\n1 AND x -> d") "d" `shouldBe` 1
+
+      it "x -> d" $
+        readSignal (createCircuit "123 -> x\nx -> d") "d" `shouldBe` 123

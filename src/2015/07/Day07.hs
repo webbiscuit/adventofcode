@@ -1,164 +1,99 @@
 module Day07
 (
-  parseStatements,
-  readVariable
+  createCircuit,
+  readSignal
 ) where
-
+  
 import Data.Bits
 import Data.Word
-import Data.Void
-import Data.Maybe
+import Data.Function.Memoize
 import qualified Data.HashMap.Strict as Map
-import Text.Megaparsec
-import Text.Megaparsec.Char
-import qualified Text.Megaparsec.Char.Lexer as L
+import Text.Read
 
-type Parser = Parsec Void String
-type Identifier = String
-type Value = Word16
-type MachineState = Map.HashMap Identifier Value
-type Destination = Identifier
-type Source = Identifier
-type Amount = Int
+type Wire = String
+type Signal = Word16
+type Value = Int
+data Input = WireIn Wire | SignalIn Signal deriving (Show)
+type SignalMap = Map.HashMap Wire Gate
 
-data Statement
-  = Assign Destination Value
-  | And Destination Source Source
-  | ValAnd Destination Value Source
-  | Or Destination Source Source
-  | LShift Destination Source Amount
-  | RShift Destination Source Amount
-  | Not Destination Source
-  deriving (Show)
+data Gate = 
+  Assign Input |
+  And Input Input |
+  Or Input Input |
+  LShift Input Value |
+  RShift Input Value |
+  Not Input
 
-sc :: Parser ()
-sc = L.space space1 empty empty
+instance Show Gate where 
+  show (Assign a) = mconcat[getVal a, " -> "]
+  show (And a b) = mconcat[getVal a," AND ", getVal b]
+  show (Or a b)  = mconcat[getVal a," OR ", getVal b]
+  show (LShift a b)  = mconcat[getVal a," LSHIFT ", show b]
+  show (RShift a b)  = mconcat[getVal a," RSHIFT ", show b]
+  show (Not a)  = mconcat["NOT ", show a]
+      
+getVal (WireIn w) = w
+getVal (SignalIn v) = show v
 
-lexeme :: Parser a -> Parser a
-lexeme = L.lexeme sc
+addGates :: [(Wire, Gate)] -> SignalMap 
+addGates = Map.fromList --["a"] [a]  --map (addGate "a" a) --[a, b]
 
-symbol :: String -> Parser String
-symbol = L.symbol sc
+parse :: [String] -> (Wire, Gate)
+parse [          x, "->", w] = (w, Assign (addInput x))
+parse [x, "AND", y, "->", w] = (w, And (addInput x) (addInput y))
+parse [x, "OR",  y, "->", w] = (w, Or (addInput x) (addInput y))
+parse [x, "LSHIFT",  y, "->", w] = (w, LShift (addInput x) (addValue y))
+parse [x, "RSHIFT",  y, "->", w] = (w, RShift (addInput x) (addValue y))
+parse [      "NOT",  x, "->", w] = (w, Not (addInput x))
 
-identifier :: Parser Identifier
-identifier = lexeme $ many letterChar
-
-value :: Parser Value
-value = lexeme L.decimal
-
-amount :: Parser Amount
-amount = lexeme L.decimal
-
-statement :: Parser Statement
-statement = 
-  try assignStatement <|> 
-  try andStatement <|> 
-  try valAndStatement <|>
-  try orStatement <|>
-  try lShiftStatement <|>
-  try rShiftStatement <|>
-  try notStatement
-
-assignStatement :: Parser Statement
-assignStatement = do
-  value <- value
-  symbol "->"
-  address <- identifier
-  return (Assign address value)
-
-andStatement :: Parser Statement
-andStatement = do
-  value1 <- identifier
-  symbol "AND"
-  value2 <- identifier
-  symbol "->"
-  address <- identifier
-  return (And address value1 value2)
-
-valAndStatement :: Parser Statement
-valAndStatement = do
-  value1 <- value
-  symbol "AND"
-  value2 <- identifier
-  symbol "->"
-  address <- identifier
-  return (ValAnd address value1 value2)
-
-orStatement :: Parser Statement
-orStatement = do
-  value1 <- identifier
-  symbol "OR"
-  value2 <- identifier
-  symbol "->"
-  address <- identifier
-  return (Or address value1 value2)
-
-lShiftStatement :: Parser Statement
-lShiftStatement = do
-  source <- identifier
-  symbol "LSHIFT"
-  amount <- amount
-  symbol "->"
-  dest <- identifier
-  return (LShift dest source amount)
-
-rShiftStatement :: Parser Statement
-rShiftStatement = do
-  source <- identifier
-  symbol "RSHIFT"
-  amount <- amount
-  symbol "->"
-  dest <- identifier
-  return (RShift dest source amount)
-
-notStatement :: Parser Statement
-notStatement = do
-  symbol "NOT"
-  source <- identifier
-  symbol "->"
-  dest <- identifier
-  return (Not dest source)
-
-initialState :: MachineState
-initialState = Map.empty
-
-finalState :: [Maybe Statement] -> MachineState
-finalState = foldl (flip handleStatement) initialState
-
-handleStatement' :: Statement -> MachineState -> MachineState
-handleStatement' (Assign identifier value) state = Map.insert identifier value state
-handleStatement' (And dest source1 source2) state = Map.insert dest (val1 .&. val2) state
-  where val1 = fromJust $ Map.lookup source1 state
-        val2 = fromJust $ Map.lookup source2 state
-handleStatement' (Or dest source1 source2) state = Map.insert dest (val1 .|. val2) state
-  where val1 = fromJust $ Map.lookup source1 state
-        val2 = fromJust $ Map.lookup source2 state
-handleStatement' (LShift dest source amount) state = Map.insert dest (shiftL val amount) state
-  where val = fromJust $ Map.lookup source state
-handleStatement' (RShift dest source amount) state = Map.insert dest (shiftR val amount) state
-  where val = fromJust $ Map.lookup source state
-handleStatement' (ValAnd dest value source) state = Map.insert dest (value .&. val) state
-  where val = fromJust $ Map.lookup source state
-handleStatement' (Not dest source) state = Map.insert dest (complement val) state
-  where val = fromJust $ Map.lookup source state
-
-handleStatement :: Maybe Statement -> MachineState -> MachineState
-handleStatement (Just statement) = handleStatement' statement
-handleStatement _ = error "Error parsing the data"
-
-parseStatements :: [String] -> MachineState
-parseStatements = finalState . map (parseMaybe statement)
-
-readVariable :: Identifier -> MachineState  -> Maybe Value
-readVariable = Map.lookup
-
--- main = do
---   input <- getContents
---   --finalState <- parse (tryParsing initialState) "" input
+-- Find if it's an Int or String
+addInput :: String -> Input
+addInput s = case readMaybe s of
+  Nothing -> WireIn s
+  Just n -> SignalIn n
   
+addValue :: String -> Value
+addValue s = read s :: Value
 
---   putStrLn "ERM"
---   -- finalState
---  -- putStrLn (finalState)
---   -- putStrLn $ showLightsOn $ countLightsOn input
---   -- putStrLn $ showBrightness $ measureBrightness input
+parseStatement :: String -> (Wire, Gate)
+parseStatement = parse . words
+
+parseStatements :: String-> [(Wire, Gate)]
+parseStatements = map parseStatement . lines
+
+eval :: SignalMap -> Wire -> Signal
+eval m = me
+  where 
+    e :: Wire -> Signal
+    e gate = case m Map.! gate of
+      (Assign a) -> getVal a
+      (And a b) -> getVal a .&. getVal b
+      (Or a b)  -> getVal a .|. getVal b
+      (LShift a b)  -> shiftL (getVal a) b
+      (RShift a b)  -> shiftR (getVal a) b
+      (Not a)  -> complement (getVal a)
+    me = memoize e
+    getVal (WireIn w) = me w
+    getVal (SignalIn s) = s
+
+showWire :: Wire -> Signal -> String
+showWire wire value = concat["Wire ", wire, " is ", show value]
+
+readSignal :: SignalMap -> Wire -> Signal
+readSignal = eval
+
+setSignal :: SignalMap -> Wire -> Signal -> SignalMap
+setSignal m w v = Map.insert w (Assign (SignalIn v)) m
+
+createCircuit :: String -> SignalMap
+createCircuit = addGates . parseStatements
+
+main = do
+  input <- getContents
+  let circuit = createCircuit input
+  let a = readSignal circuit "a"
+  putStrLn $ showWire "a" a
+  putStrLn "Tinkering..."
+  let circuit2 = setSignal circuit "b" a
+  let a2 = readSignal circuit2 "a"
+  putStrLn $ showWire "a" a2

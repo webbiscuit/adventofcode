@@ -30,6 +30,8 @@ dependencies:
   - array
   - megaparsec
   - unordered-containers
+  - fgl
+  - memoize
 
 default-extensions:
   - OverloadedStrings

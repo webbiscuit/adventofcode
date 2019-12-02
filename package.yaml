@@ -32,6 +32,9 @@ dependencies:
   - unordered-containers
   - fgl
   - memoize
+  - bimap
+  - vector
+  - split
 
 default-extensions:
   - OverloadedStrings

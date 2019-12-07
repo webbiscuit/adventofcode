@@ -5,43 +5,54 @@ module Day05
 
 import Data.Vector (Vector, fromList, (!), (//))
 import Data.List.Split
+import Text.Printf
 
-type Source = Int
+type Value = Int
 type Destination = Int
 type Memory = Vector Int
-type Noun = Int
-type Verb = Int
 data Instruction = 
-  Add Source Source Destination | 
-  Multiply Source Source Destination | 
+  Add Parameter Parameter Destination | 
+  Multiply Parameter Parameter Destination | 
   PutInput Destination |
-  PutOutput Destination |
+  PutOutput Parameter |
   End deriving Show
+type Parameter = (Mode, Value)
 data Mode = Position | Immediate deriving Show
 type Input = Int
 type Output = [Int]
+type OpCode = Int
 
 executeInstruction :: Instruction -> Memory -> Memory
-executeInstruction (Add s1 s2 d1) memory = memory // [(d1, (memory ! s1) + (memory ! s2))]
-executeInstruction (Multiply s1 s2 d1) memory = memory // [(d1, (memory ! s1) * (memory ! s2))]
+executeInstruction (Add s1 s2 d1) memory = memory // [(d1, memoryLookup memory s1 + memoryLookup memory s2)]
+executeInstruction (Multiply s1 s2 d1) memory = memory // [(d1, memoryLookup memory s1 * memoryLookup memory s2)]
+
+memoryLookup :: Memory -> Parameter -> Value
+memoryLookup memory (Position,address) = memory ! address
+memoryLookup memory (Immediate,value) = value
 
 executeInput :: Instruction -> Memory -> Input -> Memory
 executeInput (PutInput destination) memory input = memory // [(destination, input)]
 
 executeOutput :: Instruction -> Memory -> Output -> Output
-executeOutput (PutOutput destination) memory output = output ++ [memory ! destination]
+executeOutput (PutOutput value) memory output = output ++ [memoryLookup memory value]
+
+toOpCodeAndModes :: Int -> Memory -> (OpCode, [Mode])
+toOpCodeAndModes location memory = (toOpCode, reverse toModes)
+  where 
+    padOpCode = printf "%05d" (memory ! location) :: String
+    toOpCode = read $ drop 3 padOpCode
+    toModes = map (\c -> toMode $ read [c]) $ take 3 padOpCode
 
 toInstruction :: Int -> Memory -> Instruction
-toInstruction location memory = toOp $ memory ! location
+toInstruction location memory = toOp opCodeAndModes
   where 
-    toOp 1 = Add address1 address2 address3 
-    toOp 2 = Multiply address1 address2 address3
-    toOp 3 = PutInput address1
-    toOp 4 = PutOutput address1
-    toOp 99 = End
-    address1 = memory ! (location + 1)
-    address2 = memory ! (location + 2)
-    address3 = memory ! (location + 3)
+    opCodeAndModes = toOpCodeAndModes location memory
+    toOp (1, [m1,m2,_]) = Add (m1, lookup 1) (m2, lookup 2) (lookup 3) 
+    toOp (2, [m1,m2,_]) = Multiply (m1, lookup 1) (m2, lookup 2) (lookup 3)
+    toOp (3, _) = PutInput $ lookup 1
+    toOp (4, m1:_) = PutOutput (m1, lookup 1)
+    toOp (99, _) = End
+    lookup delta = memory ! (location + delta)
 
 toMode :: Int -> Mode
 toMode 0 = Position

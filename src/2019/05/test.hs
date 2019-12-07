@@ -11,8 +11,16 @@ main = hspec $
         runProgram (fromList [1002,4,3,4,33]) 0 `shouldBe` (fromList [1002,4,3,4,99],[])
 
     context "Handles input and outputs" $
-      it "3,0,4,0,99 becomes 3,0,4,0,99" $
+      it "3,0,4,0,99 becomes 10,0,4,0,99" $
         runProgram (fromList [3,0,4,0,99]) 10 `shouldBe` (fromList [10,0,4,0,99],[10])
+
+    context "Handles immediate outputs" $
+      it "104,0,99 becomes 104,0,99" $
+        runProgram (fromList [104,0,99]) 0 `shouldBe` (fromList [104,0,99],[0])
+
+    context "Handles negatives" $
+      it "1101,100,-1,4,0 becomes 1101,100,-1,4,99" $
+        runProgram (fromList [1101,100,-1,4,0]) 10 `shouldBe` (fromList [1101,100,-1,4,99],[])
 
     context "Run day 2 tests" $ do
       it "1,0,0,0,99 becomes 2,0,0,0,99" $

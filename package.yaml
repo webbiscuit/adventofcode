@@ -35,6 +35,7 @@ dependencies:
   - bimap
   - vector
   - split
+  - containers
 
 default-extensions:
   - OverloadedStrings

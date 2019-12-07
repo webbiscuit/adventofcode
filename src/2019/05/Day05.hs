@@ -15,6 +15,10 @@ data Instruction =
   Multiply Parameter Parameter Destination | 
   PutInput Destination |
   PutOutput Parameter |
+  JumpIfTrue Parameter Parameter |
+  JumpIfFalse Parameter Parameter |
+  LessThan Parameter Parameter Destination |
+  Equals Parameter Parameter Destination |
   End deriving Show
 type Parameter = (Mode, Value)
 data Mode = Position | Immediate deriving Show
@@ -25,6 +29,8 @@ type OpCode = Int
 executeInstruction :: Instruction -> Memory -> Memory
 executeInstruction (Add s1 s2 d1) memory = memory // [(d1, memoryLookup memory s1 + memoryLookup memory s2)]
 executeInstruction (Multiply s1 s2 d1) memory = memory // [(d1, memoryLookup memory s1 * memoryLookup memory s2)]
+executeInstruction (LessThan s1 s2 d1) memory = memory // [(d1, if memoryLookup memory s1 < memoryLookup memory s2 then 1 else 0)]
+executeInstruction (Equals s1 s2 d1) memory = memory // [(d1, if memoryLookup memory s1 == memoryLookup memory s2 then 1 else 0)]
 
 memoryLookup :: Memory -> Parameter -> Value
 memoryLookup memory (Position,address) = memory ! address
@@ -51,6 +57,8 @@ toInstruction location memory = toOp opCodeAndModes
     toOp (2, [m1,m2,_]) = Multiply (m1, lookup 1) (m2, lookup 2) (lookup 3)
     toOp (3, _) = PutInput $ lookup 1
     toOp (4, m1:_) = PutOutput (m1, lookup 1)
+    toOp (7, [m1,m2,_]) = LessThan (m1, lookup 1) (m2, lookup 2) (lookup 3)
+    toOp (8, [m1,m2,_]) = Equals (m1, lookup 1) (m2, lookup 2) (lookup 3)
     toOp (99, _) = End
     lookup delta = memory ! (location + delta)
 

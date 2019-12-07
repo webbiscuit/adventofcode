@@ -22,6 +22,48 @@ main = hspec $
       it "1101,100,-1,4,0 becomes 1101,100,-1,4,99" $
         runProgram (fromList [1101,100,-1,4,0]) 10 `shouldBe` (fromList [1101,100,-1,4,99],[])
 
+    context "Considers input equal to 8" $ do
+      it "3,9,8,9,10,9,4,9,99,-1,8 and input 8 outputs 1" $
+        runProgram (fromList [3,9,8,9,10,9,4,9,99,-1,8]) 8 `shouldBe` (fromList [3,9,8,9,10,9,4,9,99,1,8],[1])
+
+      it "3,9,8,9,10,9,4,9,99,-1,8 and input 7 outputs 0" $
+        runProgram (fromList [3,9,8,9,10,9,4,9,99,-1,8]) 7 `shouldBe` (fromList [3,9,8,9,10,9,4,9,99,0,8],[0])
+
+    context "Considers input less than 8" $ do
+      it "3,9,7,9,10,9,4,9,99,-1,8 and input 7 outputs 1" $
+        runProgram (fromList [3,9,7,9,10,9,4,9,99,-1,8]) 7 `shouldBe` (fromList [3,9,7,9,10,9,4,9,99,1,8],[1])
+
+      it "3,9,8,9,10,9,4,9,99,-1,8 and input 8 outputs 0" $
+        runProgram (fromList [3,9,7,9,10,9,4,9,99,-1,8]) 8 `shouldBe` (fromList [3,9,7,9,10,9,4,9,99,0,8],[0])        
+        
+    context "Considers input equal to 8 (immediate mode)" $ do
+      it "3,3,1108,-1,8,3,4,3,99 and input 8 outputs 1" $
+        runProgram (fromList [3,3,1108,-1,8,3,4,3,99]) 8 `shouldBe` (fromList [3,3,1108,1,8,3,4,3,99],[1])
+    
+      it "3,3,1108,-1,8,3,4,3,99 and input 7 outputs 0" $
+        runProgram (fromList [3,3,1108,-1,8,3,4,3,99]) 7 `shouldBe` (fromList [3,3,1108,0,8,3,4,3,99],[0]) 
+
+    context "Considers input less than 8 (immediate mode)" $ do
+      it "3,3,1107,-1,8,3,4,3,99 and input 7 outputs 1" $
+        runProgram (fromList [3,3,1107,-1,8,3,4,3,99]) 7 `shouldBe` (fromList [3,3,1107,1,8,3,4,3,99],[1])
+        
+      it "3,3,1107,-1,8,3,4,3,99 and input 8 outputs 0" $
+        runProgram (fromList [3,3,1107,-1,8,3,4,3,99]) 8 `shouldBe` (fromList [3,3,1107,0,8,3,4,3,99],[0]) 
+
+    context "Jump tests" $ do
+      it "3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9 and input 0 outputs 0" $
+        runProgram (fromList [3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9]) 0 `shouldBe` (fromList [3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9],[0])
+            
+      it "3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9 and input 1 outputs 1" $
+        runProgram (fromList [3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9]) 1 `shouldBe` (fromList [3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9],[1]) 
+
+    context "Jump tests (immediate mode)" $ do
+      it "3,3,1105,-1,9,1101,0,0,12,4,12,99,1 and input 0 outputs 0" $
+        runProgram (fromList [3,3,1105,-1,9,1101,0,0,12,4,12,99,1]) 0 `shouldBe` (fromList [3,3,1105,-1,9,1101,0,0,12,4,12,99,1],[0])
+                
+      it "3,3,1105,-1,9,1101,0,0,12,4,12,99,1 and input 1 outputs 1" $
+        runProgram (fromList [3,3,1105,-1,9,1101,0,0,12,4,12,99,1]) 1 `shouldBe` (fromList [3,3,1105,-1,9,1101,0,0,12,4,12,99,1],[1]) 
+    
     context "Run day 2 tests" $ do
       it "1,0,0,0,99 becomes 2,0,0,0,99" $
         runProgram (fromList [1,0,0,0,99]) 0 `shouldBe` (fromList [2,0,0,0,99],[])

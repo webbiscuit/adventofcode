@@ -99,3 +99,7 @@ main = do
   let (_,diagnosticCode) = runProgram program 1
 
   putStrLn ("Diagnostic code is " ++ show diagnosticCode)
+
+  let (_,diagnosticCode2) = runProgram program 5
+
+  putStrLn ("Diagnostic code for radiator is " ++ show diagnosticCode2)

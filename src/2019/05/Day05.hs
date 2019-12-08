@@ -73,7 +73,7 @@ toMode :: Int -> Mode
 toMode 0 = Position
 toMode 1 = Immediate
 
-runProgram :: Memory -> MemoryPosition -> (Memory, Output)
+runProgram :: Memory -> Input -> (Memory, Output)
 runProgram program input = runLoop 0 program input []
     where 
       runLoop :: MemoryPosition -> Memory -> Input -> Output -> (Memory, Output)

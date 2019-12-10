@@ -22,3 +22,19 @@ main = hspec $
           ("E","J"),
           ("J","K"),
           ("K","L")] `shouldBe` 42
+
+      it "Distance from YOU to SAN is 4" $
+        countTransfers [
+          ("COM","B"),
+          ("B","C"),
+          ("C","D"),
+          ("D","E"),
+          ("E","F"),
+          ("B","G"),
+          ("G","H"),
+          ("D","I"),
+          ("E","J"),
+          ("J","K"),
+          ("K","L"),
+          ("K","YOU"),
+          ("I","SAN")] "YOU" "SAN" `shouldBe` 4

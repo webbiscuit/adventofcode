@@ -1,7 +1,8 @@
 module Day07
 (
   runProgram,
-  calculateThrusterSignal
+  calculateThrusterSignal,
+  calculateFeedbackThrusterSignal
 ) where
 
 import Data.Vector (Vector, fromList, (!), (//))
@@ -75,13 +76,13 @@ toMode :: Int -> Mode
 toMode 0 = Position
 toMode 1 = Immediate
 
-runProgram :: Memory -> [Input] -> (Memory, Output)
+runProgram :: Memory -> [Input] -> (Memory, MemoryPosition, Output)
 runProgram program input = runLoop 0 program input []
     where 
-      runLoop :: MemoryPosition -> Memory -> [Input] -> Output -> (Memory, Output)
+      runLoop :: MemoryPosition -> Memory -> [Input] -> Output -> (Memory, MemoryPosition, Output)
       runLoop pos memory input output = handle (toInstruction pos memory)
         where
-          handle End = (memory, output)
+          handle End = (memory, pos, output)
           handle instr@(PutInput _) = runLoop (pos + 2) (executeInput instr memory (head input)) (tail input) output
           handle instr@(PutOutput _) = runLoop (pos + 2) memory input (executeOutput instr memory output)
           handle instr@(JumpIfTrue _ _) = runLoop (executeJump instr memory pos) memory input output
@@ -95,7 +96,14 @@ parseInput :: String -> Memory
 parseInput = fromList . map read . splitOn ","
 
 calculateThrusterSignal :: Memory -> [Int] -> Int
-calculateThrusterSignal program = foldl (\acc amp -> head $ snd $ runProgram program [amp, acc]) 0
+calculateThrusterSignal program = foldl (\acc amp -> head $ getOutput $ runProgram program [amp, acc]) 0
+  where
+    getOutput (_,_,output) = output
+
+calculateFeedbackThrusterSignal :: Memory -> [Int] -> Int
+calculateFeedbackThrusterSignal program = foldl (\acc amp -> head $ getOutput $ runProgram program [amp, acc]) 0
+  where
+    getOutput (_,_,output) = output
 
 main = do
   input <- getLine

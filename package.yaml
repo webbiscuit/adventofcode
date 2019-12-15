@@ -41,7 +41,9 @@ default-extensions:
   - OverloadedStrings
 
 library:
-  source-dirs: src
+  source-dirs: 
+    - src
+    - src/2019/shared
 # executables:
 #   aoc-exe:
 #     main: Main.hs

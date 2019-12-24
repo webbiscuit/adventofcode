@@ -1,7 +1,7 @@
-module IntCodeComputer.IntCodeComputer
+module IntCodeComputer
 (
   runProgram,
-  resumeProgram,
+  loadProgram,
   Memory,
   MemoryPosition,
   Output
@@ -33,6 +33,9 @@ type Input = Int
 type Output = [Int]
 type OpCode = Int
 type MemoryPosition = Int
+type MemoryPointer = MemoryPosition
+type RelativeBase = MemoryPosition
+type Computer = (Memory, MemoryPointer, RelativeBase, Output)
 
 executeInstruction :: Instruction -> Memory -> MemoryPosition -> Memory
 executeInstruction (Add s1 s2 d1) memory relativePos = memory // [(destMemoryLookup relativePos d1, memoryLookup memory relativePos s1 + memoryLookup memory relativePos s2)]
@@ -90,27 +93,27 @@ toMode 0 = Position
 toMode 1 = Immediate
 toMode 2 = Relative
 
-runProgram :: Memory -> [Input] -> (Memory, MemoryPosition, Output)
-runProgram program input = resumeProgram program input 0
+loadProgram :: [Int] -> Computer
+loadProgram program = (fromList program, 0, 0, [])
 
-resumeProgram :: Memory -> [Input] -> MemoryPosition -> (Memory, MemoryPosition, Output)
-resumeProgram program input pos = finalise $ runLoop pos (raiseMemory program 10000) input [] 0
+runProgram :: Computer -> [Input] -> Computer
+runProgram (memory,pos,relativeBase,_) input = finalise $ runLoop (raiseMemory memory 10000, pos, relativeBase, []) input
   where 
-    finalise (memory, pos, output) = (packMemory memory, pos, output)
-    runLoop :: MemoryPosition -> Memory -> [Input] -> Output -> MemoryPosition -> (Memory, MemoryPosition, Output)
-    runLoop pos memory input output relativePos = handle (toInstruction pos memory)
+    finalise (memory, pos, relativeBase, output) = (packMemory memory, pos, relativeBase, output)
+    runLoop :: Computer -> [Input] -> Computer
+    runLoop (memory, pos, relativeBase, output) input = handle (toInstruction pos memory)
       where
-        handle End = (memory, pos, output)
+        handle End = (memory, pos, relativeBase, output)
         handle instr@(PutInput _) = if hasInput then doPut else halt
           where 
             hasInput = not (null input)
-            doPut = runLoop (pos + 2) (executeInput instr memory relativePos (head input)) (tail input) output relativePos
-            halt = (memory, pos, output)
-        handle instr@(PutOutput _) = runLoop (pos + 2) memory input (executeOutput instr memory relativePos output) relativePos
-        handle instr@(JumpIfTrue _ _) = runLoop (executeJump instr memory relativePos pos) memory input output relativePos
-        handle instr@(JumpIfFalse _ _) = runLoop (executeJump instr memory relativePos pos) memory input output relativePos
-        handle instr@(AdjustRelativeBase _) = runLoop (pos + 2) memory input output (executeAdjustRelativeBase instr memory relativePos)
-        handle instr = runLoop (pos + 4) (executeInstruction instr memory relativePos) input output relativePos
+            doPut = runLoop (executeInput instr memory relativeBase (head input), pos + 2, relativeBase, output) (tail input)
+            halt = (memory, pos, relativeBase, output)
+        handle instr@(PutOutput _) = runLoop (memory, pos + 2, relativeBase, executeOutput instr memory relativeBase output) input
+        handle instr@(JumpIfTrue _ _) = runLoop (memory, executeJump instr memory relativeBase pos, relativeBase, output) input
+        handle instr@(JumpIfFalse _ _) = runLoop (memory, executeJump instr memory relativeBase pos, relativeBase, output) input
+        handle instr@(AdjustRelativeBase _) = runLoop (memory, pos + 2, executeAdjustRelativeBase instr memory relativeBase, output) input
+        handle instr = runLoop (executeInstruction instr memory relativeBase, pos + 4, relativeBase, output) input
 
 putCode :: Memory -> Destination -> Int -> Memory
 putCode memory destination value = memory // [(destination, value)]
@@ -130,11 +133,11 @@ packMemory = V.reverse . V.dropWhile (==0) . V.reverse
 main = do
   input <- getLine
 
-  let program = parseInput input
-  let boostResult = runProgram program [1]
+  -- let program = parseInput input
+  -- let boostResult = runProgram program [1]
 
-  putStrLn ("Boost result is " ++ show boostResult)
+  -- putStrLn ("Boost result is " ++ show boostResult)
 
-  let distressSignal = runProgram program [2]
+  -- let distressSignal = runProgram program [2]
 
-  putStrLn ("Distress signal is " ++ show distressSignal)
+  putStrLn ("Distress signal is " ++ show "0")

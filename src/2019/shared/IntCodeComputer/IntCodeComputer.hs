@@ -2,9 +2,13 @@ module IntCodeComputer
 (
   runProgram,
   loadProgram,
+  isStopped,
+  getOutput,
   Memory,
   MemoryPosition,
-  Output
+  Output,
+  Program,
+  Computer
 ) where
 
 import Data.Vector (Vector, fromList, (!), (//))
@@ -15,6 +19,7 @@ import Text.Printf
 
 type Value = Int
 type Destination = Int
+type Program = [Int]
 type Memory = Vector Int
 data Instruction = 
   Add Parameter Parameter Parameter | 
@@ -93,7 +98,7 @@ toMode 0 = Position
 toMode 1 = Immediate
 toMode 2 = Relative
 
-loadProgram :: [Int] -> Computer
+loadProgram :: Program -> Computer
 loadProgram program = (fromList program, 0, 0, [])
 
 runProgram :: Computer -> [Input] -> Computer
@@ -121,8 +126,11 @@ putCode memory destination value = memory // [(destination, value)]
 parseInput :: String -> Memory
 parseInput = fromList . map read . splitOn ","
 
-isStopped :: Memory -> MemoryPosition -> Bool
-isStopped mem pos = (mem ! pos) == 99
+isStopped :: Computer -> Bool
+isStopped (mem,pos,_,_) = (mem ! pos) == 99
+
+getOutput :: Computer -> Output
+getOutput (_,_,_,output) = output
 
 raiseMemory :: Memory -> Int -> Memory
 raiseMemory program amount = program V.++ V.replicate amount 0

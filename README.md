@@ -6,6 +6,10 @@
 - Haskell
 - Christmas
 
+## Building
+
+`stack build`
+
 ## Running a day
 
     cd <to correct directory in src>

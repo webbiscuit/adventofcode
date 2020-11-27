@@ -13,3 +13,6 @@ Partially done
 
 [2019](2019/README.md) (Year of the Int Computer)
 Partially done
+
+[2020](2020)
+Getting ready!

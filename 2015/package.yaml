@@ -43,7 +43,6 @@ default-extensions:
 library:
   source-dirs: 
     - src
-    - src/2019/shared/IntCodeComputer
 # executables:
 #   aoc-exe:
 #     main: Main.hs

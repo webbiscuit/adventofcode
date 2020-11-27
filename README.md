@@ -6,18 +6,10 @@
 - Haskell
 - Christmas
 
-## Building
+## Years
 
-`stack build`
+[2015](2015/README.md)
+Partially done
 
-## Running a day
-
-    cd <to correct directory in src>
-    stack runghc 1.hs < input.txt
-    echo -n "()" | stack runghc 1.hs
-
-## Running a test
-
-The tests are from the example of the day
-
-    stack runghc test.hs
+[2019](2019/README.md) (Year of the Int Computer)
+Partially done

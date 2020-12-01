@@ -1,28 +1,46 @@
 module Day01
 (
-  calculateFuel,
-  calculateFuelWithFuelMass
+  find2020Expense,
+  find2020TriplesExpense,
 ) where
 
-type Mass = Int
-type Fuel = Int
+type Expense = Int
+type Target = Int
 
-calculateFuel :: Mass -> Fuel
-calculateFuel m = m `div` 3 - 2
+find2020Expense :: [Expense] -> Expense
+find2020Expense = findExpense 2020
 
-calculateFuelWithFuelMass :: Mass -> Fuel
-calculateFuelWithFuelMass m = sum $ drop 1 $ takeWhile (>= 0) $ iterate calculateFuel m
+find2020TriplesExpense :: [Expense] -> Expense
+find2020TriplesExpense = findTriplesExpense 2020
 
-parseInput :: [String] -> [Mass]
-parseInput = map (\s -> read s :: Mass)
+findExpense :: Target -> [Expense] -> Expense
+findExpense t (x:xs)
+  | needle `elem` xs = x * needle
+  | otherwise = findExpense t xs
+  where
+    needle = t - x  
+findExpense _ _ = 0
 
+findTriplesExpense :: Target -> [Expense] -> Expense
+findTriplesExpense t (x:xs)
+  | found > 0 = found * x
+  | otherwise = findTriplesExpense t xs
+  where
+    needle = t - x  
+    found = findExpense needle xs
+findTriplesExpense _ _ = 0
+
+parseExpenseList :: [String] -> [Expense]
+parseExpenseList = map read
+
+main :: IO()
 main = do
   input <- getContents
+  let expenses = parseExpenseList $ lines input
+  let expenses2020 = find2020Expense expenses
 
-  let masses = parseInput $ lines input
-  let fuelNeeded = sum $ map calculateFuel masses
-  let fuelNeededWithFuelMass = sum $ map calculateFuelWithFuelMass masses
+  putStrLn ("Expenses for 2020 as doubles are: " ++ show expenses2020)
 
-  putStrLn ("The total amount of fuel needed is " ++ show fuelNeeded)
-  putStrLn ("The total amount of fuel needed taking into account fuel mass is " ++ show fuelNeededWithFuelMass)
-  
+  let expenses2020Triples = find2020TriplesExpense expenses
+
+  putStrLn ("Expenses for 2020 as triples are: " ++ show expenses2020Triples)

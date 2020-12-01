@@ -15,4 +15,4 @@ Partially done
 Partially done
 
 [2020](2020)
-Getting ready!
+This is now!

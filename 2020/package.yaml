@@ -25,6 +25,7 @@ dependencies:
   - tasty
   - tasty-hspec
   - hspec
+  - regex-pcre-builtin
 
 library:
   source-dirs: src

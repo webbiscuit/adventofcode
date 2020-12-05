@@ -25,7 +25,10 @@ dependencies:
   - tasty
   - tasty-hspec
   - hspec
+  - hspec-tables
   - regex-pcre-builtin
+  - parsec
+  - split
 
 library:
   source-dirs: src

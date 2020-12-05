@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: cf9dc947d2bd25c9e280ac3b0e32ae48d3ca7192f81749794e991ad98c6745e1
+-- hash: 53d38e35fcc6089ecbdde02977e6cf96c1c562d98e57f4222c57c144cc9f9f35
 
 name:           aoc2020
 version:        0.1.0.0
@@ -33,7 +33,10 @@ library
   build-depends:
       base >=4.7 && <5
     , hspec
+    , hspec-tables
+    , parsec
     , regex-pcre-builtin
+    , split
     , tasty
     , tasty-hspec
     , text

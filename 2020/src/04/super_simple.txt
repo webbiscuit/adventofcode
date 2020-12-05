@@ -1,3 +1,0 @@
-ecl:gry
-
-ecl:red

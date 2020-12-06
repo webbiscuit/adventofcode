@@ -6,4 +6,4 @@ Anything which involves doubling/halving can be a good fit for bit twiddling. If
 
 ## Part 2
 
-If we sort our list of seat ids and zip it up against a list of expected seat ids, we can find compare to find the first mismatch - that is the empty seat number.
+If we sort our list of seat ids and zip it up against a list of expected seat ids, we can compare to find the first mismatch - that is the empty seat number.

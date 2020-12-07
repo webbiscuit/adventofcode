@@ -6,4 +6,4 @@ This looks complicated but can probably be solved as iterating through a list wi
 
 ## Part 2
 
-Not too bad as the mod index method for Part 1 was good, only issue was the final strategy which checked every otehr item in the list, which is surprisingly hard in haskell! Maybe there's a better way.
+Not too bad as the mod index method for Part 1 was good, only issue was the final strategy which checked every other item in the list, which is surprisingly hard in haskell! Maybe there's a better way.

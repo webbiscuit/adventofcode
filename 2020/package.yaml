@@ -29,6 +29,7 @@ dependencies:
   - regex-pcre-builtin
   - parsec
   - split
+  - fgl
 
 library:
   source-dirs: src

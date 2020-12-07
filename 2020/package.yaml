@@ -30,6 +30,7 @@ dependencies:
   - parsec
   - split
   - fgl
+  - containers
 
 library:
   source-dirs: src

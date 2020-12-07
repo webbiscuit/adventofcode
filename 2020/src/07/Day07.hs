@@ -6,21 +6,33 @@ module Day07
 
 import Data.List
 import Data.Maybe
+import Data.List.Split
+import Text.Regex.PCRE
 
 import Data.Graph.Inductive.Graph (mkGraph)
 import Data.Graph.Inductive.PatriciaTree (Gr)
 import Data.Graph.Inductive.Query.SP (sp, spLength)
+import Data.Graph.Inductive.Dot
+import Data.Graph.Inductive.Query.DFS
 
 type BagRule = String
 type Bag = String
 type BagCount = Integer
 type BagContainsBags = (Bag, Bag, BagCount) 
 
--- newtype NodeLabel = NodeLabel String 
 newtype NodeLabel = NodeLabel String deriving(Show)
 
 parseBagRule :: BagRule -> (Bag, [(Bag, BagCount)])
-parseBagRule bagRule = 
+parseBagRule bagRule = (sourceBag, targetBags)
+  where
+    sourceTargetSplit = splitOn " bags contain " bagRule
+    sourceBag = sourceTargetSplit !! 0
+    targetBags = concatMap parseTargetBags $ splitOn ", " $ init $ sourceTargetSplit !! 1
+
+parseTargetBags :: String -> [(Bag, BagCount)]    
+parseTargetBags targetBag = map parse (targetBag =~ "^(\\d) (\\w* \\w*)" :: [[String]])
+  where 
+    parse [_, n, name] = (name, read n :: BagCount)
 
 genLabelIds :: [String] -> [(String, Int)]
 genLabelIds labels = zip labels [1..]
@@ -28,28 +40,40 @@ genLabelIds labels = zip labels [1..]
 lookupLabelId :: [(String, Int)] -> String -> Int
 lookupLabelId labelIds k = snd $ fromJust $ find (\(a,_) -> a == k) labelIds
 
-genEdge (from, to) labelIds = (from, to)
+toNode :: (Bag, [(Bag, BagCount)]) -> Bag
+toNode (bag, _) = bag 
 
-test = ["red","blue","Blak"]
-testEdge = [("red","blue", 2),("blue","Blak", 3)]
-test2 = genLabelIds ["a","b","c"]
+toEdge:: (Bag, [(Bag, BagCount)]) -> [BagContainsBags]
+toEdge (source,values) = map (\(t,c) -> (source, t, c)) values 
 
-
--- genGraph :: (Int, [EdgeSpec]) -> Gr NodeLabel Distance
 genGraph :: [Bag] -> [BagContainsBags] -> Gr NodeLabel BagCount
 genGraph nodes edges = mkGraph genNodeLabels genEdges
   where
     labelIds = genLabelIds nodes
-    genNodeLabels = map (\(label,id) -> (id, NodeLabel label)) labelIds
+    genNodeLabels = map (\(label,id) -> (id, NodeLabel (show id ++ " " ++ label))) labelIds
     genEdges = map (\(a,b,c) -> (lookupLabelId labelIds a, lookupLabelId labelIds b, c)) edges
 
-bagsContainingBag :: [BagRule] -> Bag -> [Bag]
-bagsContainingBag bagRules bag = []
+bagsContainingBag :: [BagRule] -> Bag -> [Int]
+bagsContainingBag bagRules bag = tail $ rdfs [lookupLabelId labelIds bag] (mkGraphBag bagRules) 
+  where
+    parsed = map parseBagRule bagRules
+    nodes = map toNode parsed
+    labelIds = genLabelIds nodes
 
+mkGraphBag :: [BagRule] -> Gr NodeLabel BagCount
+mkGraphBag bagRules = graph
+  where 
+    graph = genGraph nodes edges
+    parsed = map parseBagRule bagRules
+    nodes = map toNode parsed
+    edges = concatMap toEdge parsed
 
 main :: IO ()
 main = do
   input <- getContents
-  let bagColours = bagsContainingBag (words input) "shiny gold"
+  let bagColours = bagsContainingBag (lines input) "shiny gold"
 
   putStrLn $ "Number of bag colours is " ++ show (length bagColours)
+
+  -- let dot = showDot (fglToDot graph)
+  -- writeFile "file.dot" dot

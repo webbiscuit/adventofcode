@@ -1,32 +1,35 @@
 module Day08
 (
-  readAccumulator,
-  runProgramUntilLoop,
+  runProgram,
+  healProgram,
+  parseToProgram,
+  ExitCode ( Eof, Infinity ),
 ) where
 
+import Data.List
+import Data.Maybe
+
 type Argument = Int
-data Instruction = 
+data Instruction =
   Acc Argument |
   Jmp Argument |
   Nop Argument deriving Show
 type Program = [Instruction]
-type Output = Int
+type Output = (ExitCode, Int)
+data ExitCode = Eof | Infinity deriving (Show, Eq)
 
-readAccumulator :: Int -> Int
-readAccumulator _ = 0
-
-runProgramUntilLoop :: Program -> Output
-runProgramUntilLoop program = runLoop 0 0 []
+runProgram :: Program -> Output
+runProgram program = runLoop 0 0 []
   where
-    runLoop line acc runLines
-      | line `elem` runLines = acc
-      | otherwise = execute (program !! line) []
+    runLoop line acc linesExecuted
+      | line `elem` linesExecuted = (Infinity, acc)
+      | line >= length program = (Eof, acc)
+      | otherwise = execute (program !! line) (line : linesExecuted)
       where
         execute (Acc n) = runLoop (line + 1) (acc + n)
         execute (Jmp n) = runLoop (line + n) acc
-        execute (Nop _) = runLoop line acc 
+        execute (Nop _) = runLoop (line + 1) acc
 
--- parseToInstruction :: String -> Int -> Instruction
 parseToInstruction :: [String] -> Instruction
 parseToInstruction ["acc", n] = Acc (toInt n)
 parseToInstruction ["jmp", n] = Jmp (toInt n)
@@ -39,17 +42,26 @@ toInt n = read n :: Int
 parseToProgram :: String -> Program
 parseToProgram s = map (parseToInstruction . words) (lines s)
 
-l = ["nop +0","acc +1","jmp +4","acc +3","jmp -3","acc -99","acc +1","jmp -4","acc +6"]
-l1 = "acc 1"
+flipInstruction :: Instruction -> Instruction
+flipInstruction (Jmp n) = Nop n
+flipInstruction (Nop n) = Jmp n
+flipInstruction i =  i
+
+healProgram :: Program -> Output
+healProgram program = fromJust $ find (\(code,_) -> code == Eof) $ map runProgram allPrograms
+   where 
+    allPrograms = zipWith patchProgram [1..] $ replicate (length program) (programLines program)
+    programLines = zip [1..]
+    patchProgram flipLine = map (\(ln,p) -> if ln == flipLine then flipInstruction p else p) 
 
 main :: IO ()
 main = do
   input <- getContents
 
   let program = parseToProgram input
-  let output = runProgramUntilLoop program
+  let output = runProgram program
 
-  putStrLn $ "Accumulator is " ++ show (output)
+  putStrLn $ "Accumulator before loop is " ++ show (snd output)
 
-  -- let dot = showDot (fglToDot graph)
-  -- writeFile "file.dot" dot
+  let healedOutput = healProgram program
+  putStrLn $ "Accumulator with healed program is " ++ show (snd healedOutput)

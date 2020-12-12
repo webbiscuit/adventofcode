@@ -9,3 +9,5 @@ It is a graph - it's a (reverse) depth search from the bag up to the parents.
 This needs refactoring...
 
 ## Part 2
+
+This should be a depth search to the children, multiplying up the bag count (edge values) as we go. I can't figure out the syntax though...maybe using a graph was overkill!

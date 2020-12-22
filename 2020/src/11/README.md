@@ -6,3 +6,5 @@ We need to build a 2d grid, loop through all the chairs, check the rules and cre
 Maintaining the grid size can be a pain, but if we use !? lookup in the vector we can return Maybe values rather than getting an error if we're checking off grid. Then we can use mapMaybe to remove those maybes and return a list of values.
 
 ## Part 2
+
+Like part 1, but instead of direct neighbours we're drawing straight lines to find the neighbours. All runs pretty slowly, I wonder if there's a better way!
